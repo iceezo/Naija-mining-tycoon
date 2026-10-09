@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Naija Mining Tycoon</title>
+<style>
+:root{
+  --bg:#12322B; --s1:#1A4338; --s2:#235347; --line:#33675A;
+  --ink:#F1EDE0; --mute:#9DB8AD; --gold:#E8B33A; --red:#E0694A; --up:#7FD6A0;
+  --slab:Rockwell,"Roboto Slab","Zilla Slab","Bitter",Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100dvh;padding-bottom:88px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:520px;margin:0 auto}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation;background:none}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+h1,h2,h3,.cash{font-family:var(--slab)}
+
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.cash{font-weight:800;font-size:40px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:6px;color:var(--mute);font-size:14px}
+#news{margin-top:8px;font-size:14px;line-height:1.35;min-height:38px;color:var(--ink);background:var(--s1);border-radius:8px;padding:8px 10px}
+#news.pulse{animation:pulse .9s ease-out}
+@keyframes pulse{from{background:#3d6a30}to{background:var(--s1)}}
+
+main{padding:14px 16px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none}
+.chip{flex:none;padding:9px 16px;border-radius:999px;background:var(--s1);border:1px solid var(--line);font-weight:600}
+.chip[aria-pressed=true]{background:var(--gold);color:#12322B;border-color:var(--gold)}
+.tag{color:var(--mute);font-size:14px;margin:4px 0 10px}
+.qty{display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:14px;color:var(--mute)}
+.qty span{margin-right:4px}
+.qty button{min-width:44px;min-height:36px;border-radius:6px;background:var(--s1);border:1px solid var(--line);color:var(--ink)}
+.qty button[aria-pressed=true]{background:var(--s2);border-color:var(--gold);color:var(--gold);font-weight:700}
+
+.node{background:var(--s1);border-left:7px solid var(--c);border-radius:12px;padding:12px 12px 12px 14px;margin-bottom:14px}
+.node.locked{border-left-style:dashed;opacity:.65}
+.node.locked p{color:var(--mute);font-size:14px;margin-top:2px}
+.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.node h3{font-size:20px;font-weight:800}
+.stk{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.px{text-align:right;font-variant-numeric:tabular-nums}
+.px b{display:block;font-size:17px}
+.px span{font-size:13px;font-weight:700}
+.px .up{color:var(--up)} .px .down{color:var(--red)}
+.bar{height:8px;border-radius:4px;background:#0e2722;margin:10px 0}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);transition:width .25s}
+.node.full .bar i{background:var(--red)}
+.dig{position:relative;width:100%;min-height:68px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:var(--on);font-family:var(--slab);font-weight:800;font-size:19px;
+  background:repeating-linear-gradient(176deg,var(--c) 0 12px,color-mix(in srgb,var(--c) 82%,#000) 12px 17px,color-mix(in srgb,var(--c) 92%,#fff) 17px 24px);
+  box-shadow:0 4px 0 color-mix(in srgb,var(--c) 55%,#000);transition:transform .08s,box-shadow .08s;user-select:none;-webkit-user-select:none}
+.dig small{font:600 13px system-ui,sans-serif;opacity:.85}
+.dig:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 55%,#000)}
+.node.flooded .dig{filter:grayscale(1) brightness(.6)}
+.acts{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;margin-top:12px}
+.acts button{min-height:48px;border-radius:6px;background:var(--s2);border:1px solid var(--line);padding:6px 10px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;font-size:14px;line-height:1.2}
+.acts button b{color:var(--gold);font-size:15px}
+.acts em{font-style:normal;color:var(--mute)}
+.rate{margin-top:8px;font-size:13px;color:var(--mute)}
+.node.flooded .rate{color:var(--red)}
+
+.float{position:absolute;pointer-events:none;font:800 18px var(--slab);color:var(--gold);text-shadow:0 1px 0 #000a;animation:rise .9s ease-out forwards;z-index:3;white-space:nowrap}
+.dig .float{color:#fff}
+@keyframes rise{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-56px)}}
+
+h2{font-size:22px;margin:4px 0 6px}
+.hint{color:var(--mute);font-size:14px;margin-bottom:12px}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--s2);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.mhead p{font-size:13px;color:var(--mute)}
+.mhead b{font:800 22px var(--slab);color:var(--gold)}
+.big{background:var(--gold);color:#12322B;font-weight:800;border-radius:8px;padding:12px 16px;min-height:48px}
+.mrow{background:var(--s1);border-left:7px solid var(--c);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.mrow h3{font-size:17px}
+.mrow .qt{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.mrow button{grid-column:2;grid-row:1/3;min-height:48px;min-width:96px;border-radius:6px;background:var(--s2);border:1px solid var(--line);font-weight:700;color:var(--gold);padding:6px 10px}
+.mrow .px{text-align:left;display:flex;gap:8px;align-items:baseline}
+.mrow .px b{display:inline;font-size:15px}
+.agent{margin-top:14px;width:100%;min-height:48px;border-radius:8px;background:var(--s1);border:1px solid var(--line);padding:10px;font-weight:600}
+.agent[aria-pressed=true]{border-color:var(--up);color:var(--up)}
+
+.up{background:var(--s1);border-radius:10px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.up h3{font-size:17px}
+.up p{font-size:13px;color:var(--mute);margin-top:2px}
+.up .mx{color:var(--gold);font-weight:700}
+.up.own{opacity:.75;border:1px solid var(--line);background:none}
+.up.later{opacity:.5}
+.up button{flex:none;min-width:104px;min-height:48px;border-radius:6px;background:var(--gold);color:#12322B;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;padding:4px 10px;line-height:1.2}
+.up button b{font-size:15px}
+.up .tick{color:var(--up);font-weight:700}
+.up .lock{color:var(--mute);font-size:14px;font-weight:600}
+.up .stack{display:grid;gap:6px}
+.up button.danger{background:none;border:1px solid var(--red);color:var(--red)}
+.sec2{margin-top:20px}
+
+.bills{background:var(--s1);border-radius:10px;padding:6px 12px;margin-bottom:6px}
+.bills div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px;font-variant-numeric:tabular-nums}
+.bills div:last-child{border-bottom:0}
+.bills .tot{font-weight:800}
+.bills .tot b{color:var(--gold)}
+.bills .owed{color:var(--red);font-weight:700}
+.bank{background:var(--s2);border-radius:12px;padding:14px;margin-bottom:6px}
+.bank .row2{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;padding:2px 0}
+.bank .row2 b{font:800 20px var(--slab);color:var(--gold)}
+.bank .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bank .btns button{min-height:48px;border-radius:6px;background:var(--s1);border:1px solid var(--line);font-weight:700}
+.log{list-style:none;font-size:14px;color:var(--mute)}
+.log li{padding:7px 0;border-bottom:1px solid var(--line)}
+.log li:first-child{color:var(--ink)}
+textarea{width:100%;min-height:84px;border-radius:8px;border:1px solid var(--line);background:#0e2722;color:var(--ink);font:13px/1.3 ui-monospace,Menlo,monospace;padding:8px;margin:8px 0;resize:vertical}
+.btn2{min-height:46px;border-radius:6px;background:var(--s2);border:1px solid var(--line);padding:8px 14px;font-weight:700;margin:0 8px 8px 0}
+.btn2.danger{border-color:var(--red);color:var(--red)}
+
+.mapbox{background:var(--s1);border-radius:14px;padding:6px;margin-bottom:12px}
+.mapbox svg{display:block;width:100%;height:auto}
+.mapbox text{font:700 11px system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:#12322B;stroke-width:3px;stroke-linejoin:round}
+.mapbox g[data-act]{cursor:pointer}
+.panel{background:var(--s2);border-radius:12px;padding:14px}
+.panel h2{margin:0}
+.panel ul{list-style:none;margin:10px 0 12px;font-size:14px}
+.panel li{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line)}
+.panel li span:last-child{color:var(--gold);font-variant-numeric:tabular-nums}
+.panel .big{width:100%}
+
+#modal{position:fixed;inset:0;z-index:20;background:rgba(5,20,16,.8);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+#modal[hidden]{display:none}
+#modal .card{width:100%;max-width:480px;background:var(--s1);border:2px solid var(--gold);border-radius:14px;padding:18px;max-height:92dvh;overflow:auto}
+#modal .card.danger{border-color:var(--red)}
+#modal .agency{color:var(--gold);font-weight:700;font-size:14px;margin:0 0 8px}
+#modal .card.danger .agency{color:var(--red)}
+#modal .txt{font-size:15px}
+.choices{display:grid;gap:8px;margin-top:14px}
+.choices button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:52px;padding:10px 12px;border-radius:8px;background:var(--s2);border:1px solid var(--line)}
+.choices button span{font-size:13px;color:var(--mute)}
+.choices .big{align-items:center;text-align:center}
+
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--s1);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav div{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav button{min-height:62px;font-weight:700;font-size:13px;color:var(--mute);border-top:4px solid transparent}
+nav button[aria-current=page]{color:var(--gold);border-top-color:var(--gold);background:var(--s2)}
+
+
+.sponsor{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px dashed var(--gold);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:14px}
+.sponsor[hidden]{display:none}
+.sponsor small{color:var(--mute);flex:none}
+.sponsor a{color:var(--ink);text-decoration:none}
+.sponsor a b{color:var(--gold)}
+.sponsor button{text-align:left;color:var(--gold);font-weight:600}
+.field{display:block;font-size:14px;color:var(--mute);margin-bottom:10px}
+.field input,.field select{display:block;width:100%;margin-top:4px;min-height:46px;border-radius:8px;border:1px solid var(--line);background:#0e2722;color:var(--ink);padding:8px 10px;font:inherit}
+.chatlist{height:44dvh;overflow-y:auto;background:#0e2722;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:14px}
+.cm{padding:3px 0;word-break:break-word}
+.cm .cn{color:var(--gold);font-weight:700;text-align:left}
+.cm.dm{color:#cfe8ff}
+.cm.sys{color:var(--mute);font-style:italic}
+.chatbar{display:flex;gap:8px;margin-bottom:6px}
+.chatbar input{flex:1;min-width:0;min-height:48px;border-radius:8px;border:1px solid var(--line);background:#0e2722;color:var(--ink);padding:8px 10px;font:inherit}
+.chatbar .big{padding:10px 18px}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="cash" id="cash">₦0</div>
+    <div class="meta"><span id="ips">₦0 per second</span><span id="day">Day 1</span><span id="bank">Bank ₦0</span></div>
+    <p id="news" role="status" aria-live="polite"></p>
+  </header>
+  <main id="view"></main>
+</div>
+<div id="modal" hidden role="dialog" aria-modal="true"></div>
+<nav aria-label="Game sections"><div>
+  <button data-tab="mine">Mine</button>
+  <button data-tab="market">Market</button>
+  <button data-tab="upgrades">Shop</button>
+  <button data-tab="life">Life</button>
+  <button data-tab="chat">Chat</button>
+  <button data-tab="map">Map</button>
+</div></nav>
+
+<script>
+/* ---------- helpers ---------- */
+const $=(s,e=document)=>e.querySelector(s);
+const $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function fmt(n){
+  const a=Math.abs(n);
+  if(a<1000) return Math.floor(n).toLocaleString('en-NG');
+  for(const [s,v] of [['T',1e12],['B',1e9],['M',1e6],['K',1e3]]){
+    if(a>=v){const x=n/v;return (x>=100?x.toFixed(0):x>=10?x.toFixed(1):x.toFixed(2))+s;}
+  }
+}
+const naira=n=>'₦'+fmt(n);
+const units=n=>n<10?n.toFixed(1):fmt(n);
+const pct=x=>Math.round(x*100)+'%';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtTime(ms){const m=Math.ceil(ms/60000);return m>=60?Math.floor(m/60)+' h '+(m%60)+' min':m+' min';}
+/* Set API to your server address (see server/README.md). Leave it empty to play without chat and payments. */
+const CFG={API:'',DEMO:/[?&]demo=1/.test(location.search||'')};
+function onColor(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return (0.299*r+0.587*g+0.114*b)/255>0.6?'#12322B':'#F1EDE0';
+}
+
+/* ---------- data ---------- */
+const R=(id,name,unit,price,color)=>({id,name,unit,price,color});
+const STATES=[
+ {id:'nasarawa',name:'Nasarawa',cost:0,x:8.5,y:8.5,lx:0,ly:17,a:'middle',risk:1,
+  tag:'Barite, marble and tin. Every big miner starts somewhere.',
+  res:[R('barite','Barite','tonne',20,'#D5DADB'),R('marble','Marble','block',45,'#E9E3D3'),R('tin','Tin ore','tonne',80,'#8FA8B5')]},
+ {id:'ogun',name:'Ogun',cost:15000,x:3.3,y:7.0,lx:10,ly:4,a:'start',risk:1,
+  tag:'The cement belt. Limestone, kaolin and bitumen.',
+  res:[R('limestone','Limestone','tonne',150,'#D9CFAE'),R('kaolin','Kaolin','tonne',220,'#F0E3D6'),R('bitumen','Bitumen','tonne',320,'#6A5D55')]},
+ {id:'ekiti',name:'Ekiti',cost:50000,x:5.3,y:7.7,lx:0,ly:-11,a:'middle',risk:1,
+  tag:'Granite hills, feldspar and quartz in the highlands.',
+  res:[R('granite','Granite','tonne',330,'#A3A7AB'),R('feldspar','Feldspar','tonne',400,'#E3B7A0'),R('quartz','Quartz','tonne',480,'#E8E4EE')]},
+ {id:'ebonyi',name:'Ebonyi',cost:100000,x:8.0,y:6.3,lx:0,ly:17,a:'middle',risk:1,
+  tag:'Lead, zinc and the salt lake at Uburu.',
+  res:[R('lead','Lead','tonne',450,'#7C8794'),R('zinc','Zinc','tonne',650,'#A9B9C6'),R('salt','Salt','tonne',900,'#F3F1EA')]},
+ {id:'kogi',name:'Kogi',cost:500000,x:6.7,y:7.8,lx:0,ly:-11,a:'middle',risk:2,
+  tag:'Itakpe iron ore, Okaba coal and the Ajaokuta steel dream.',
+  res:[R('coal','Coal','tonne',1400,'#5A5A62'),R('iron','Iron ore','tonne',2000,'#B24F33'),R('steel','Steel billets','tonne',3200,'#6F8FAF')]},
+ {id:'plateau',name:'Plateau',cost:2500000,x:9.2,y:9.2,lx:10,ly:-8,a:'start',risk:2,
+  tag:'Jos tin fields, columbite and gemstones.',
+  res:[R('columbite','Columbite','kg',4500,'#6A659E'),R('gems','Gemstones','kg',7000,'#CC5F92'),R('lithium','Lithium ore','tonne',11000,'#7FC4B8')]},
+ {id:'kaduna',name:'Kaduna',cost:6000000,x:7.4,y:10.5,lx:-10,ly:4,a:'end',risk:2,
+  tag:'Amethyst and tantalite in the northern highlands.',
+  res:[R('amethyst','Amethyst','kg',13000,'#9B6FCF'),R('tantalite','Tantalite','kg',16000,'#6E7FA8')]},
+ {id:'zamfara',name:'Zamfara',cost:12000000,x:6.2,y:12.1,lx:10,ly:4,a:'start',risk:3,
+  tag:'Gold country. High reward, high risk on the roads.',
+  res:[R('agold','Alluvial gold','kg',20000,'#E8B33A'),R('rgold','Reef gold','kg',32000,'#C99524')]},
+ {id:'bayelsa',name:'Bayelsa',cost:60000000,x:6.1,y:4.8,lx:10,ly:-6,a:'start',risk:3,
+  tag:'The Niger Delta. Oil and gas pay the biggest cheques.',
+  res:[R('oil','Crude oil','barrel',80000,'#4A5E63'),R('gas','Natural gas','MMscf',120000,'#8EC5E8'),R('cond','Condensate','barrel',170000,'#D9A441')]}
+];
+const STATE_BY={},RES=[],RES_BY={};
+STATES.forEach(s=>{STATE_BY[s.id]=s;s.res.forEach(r=>{r.state=s.id;RES.push(r);RES_BY[r.id]=r;});});
+
+const EQ=[
+ {n:'Hand tools and helmets',d:'Proper picks, shovels and safety boots.',m:2,c:200},
+ {n:'Wheelbarrows and sieves',d:'Move and wash more ore every hour.',m:2,c:2500},
+ {n:'Excavator',d:'One machine does the work of a whole pit crew.',m:3,c:30000},
+ {n:'Drill rig',d:'Reach the deeper seams.',m:3,c:400000},
+ {n:'Blasting crew',d:'Licensed, loud and effective.',m:4,c:6e6},
+ {n:'Haul trucks',d:'A convoy from pit to port.',m:5,c:1e8},
+ {n:'Satellite survey',d:'Find the richest ground before you dig.',m:5,c:2e9}
+];
+const WH=[500,5e3,5e4,5e5,5e6,5e7,5e8,5e9];
+const SEC=[20000,400000,8e6];
+const AGENT_COST=25000;
+const HOME=[
+ {n:'Shared room in Karu',c:0,up:0,prot:1},
+ {n:'One-bedroom in Lugbe',c:8000,up:150,prot:0.85},
+ {n:'Three-bedroom flat in Gwarinpa',c:120000,up:1800,prot:0.7},
+ {n:'Duplex in Asokoro',c:2.5e6,up:20000,prot:0.5},
+ {n:'Mansion in Maitama',c:4e7,up:250000,prot:0.35}
+];
+const CAR=[
+ {n:'Keke and bus rides',c:0,up:0,sale:0,prot:1},
+ {n:'Second-hand Corolla',c:25000,up:400,sale:0.03,prot:1},
+ {n:'Toyota Hilux',c:600000,up:5000,sale:0.06,prot:0.85},
+ {n:'Land Cruiser Prado',c:8e6,up:60000,sale:0.09,prot:0.7},
+ {n:'Armoured Land Cruiser',c:9e7,up:500000,sale:0.12,prot:0.4}
+];
+const LIVING=100;
+const TIPS=[
+ 'Light goes off again. The generators earn overtime.',
+ 'A new minister promises to open up the solid minerals sector.',
+ 'Abuja traffic delays one of your trucks. Of course it was yours.',
+ 'A man you do not know says he has a buyer in Dubai.',
+ 'Harmattan dust settles on every pit. Nothing changes in the market.'
+];
+const NG=[[2.7,6.4],[3.4,6.45],[4.5,6.3],[5.2,5.8],[5.5,5.0],[6.2,4.3],[7.2,4.4],[8.0,4.5],[8.6,4.7],[8.7,5.2],[9.0,6.0],[9.5,6.5],[10.3,6.9],[11.0,7.0],[11.6,7.5],[12.3,7.9],[12.9,8.7],[13.3,9.8],[13.9,10.6],[14.4,11.6],[14.6,12.4],[14.6,13.2],[13.7,13.6],[12.0,13.4],[10.7,13.4],[9.3,13.3],[8.0,13.1],[6.8,13.1],[5.5,13.8],[4.4,13.6],[3.7,12.6],[3.6,11.7],[3.9,10.9],[3.1,10.0],[2.7,9.0],[2.8,7.8]];
+
+/* ---------- game state ---------- */
+const G={cash:0,bank:0,total:0,day:1,dayT:0,eq:0,wh:0,agent:false,auto:true,sec:0,home:0,car:0,owed:0,taxBase:0,
+  unlocked:{nasarawa:true},lvl:{},stock:{},mult:{},
+  boost:{},allBoost:null,halt:null,log:[],modal:null,adBoost:null,adCd:0,
+  cur:'nasarawa',tab:'mine',qty:'1',sel:null,nextEv:30,govCd:60,won:false,resetArm:false,savedOk:null,wiping:false};
+RES.forEach(r=>{G.lvl[r.id]=0;G.stock[r.id]=0;G.mult[r.id]=1;});
+
+/* ---------- rules ---------- */
+const equipMult=()=>EQ.slice(0,G.eq).reduce((a,e)=>a*e.m,1);
+const premMult=()=>(A.ent.boostUntil>Date.now()?2:1);
+const adMult=()=>(G.adBoost&&Date.now()<G.adBoost.until?G.adBoost.m:1);
+const cap=()=>100*Math.pow(2,G.wh);
+const milestone=l=>Math.pow(2,[10,25,50,100,200].filter(m=>l>=m).length);
+const nodeRate=r=>G.lvl[r.id]*0.3*milestone(G.lvl[r.id])*equipMult()*premMult();
+const tapUnits=r=>equipMult()*premMult()*(1+0.1*G.lvl[r.id]);
+const halted=sid=>G.halt&&G.halt.s===sid&&Date.now()<G.halt.until;
+const ownedRes=()=>RES.filter(r=>G.unlocked[r.state]);
+const funds=()=>G.cash+G.bank;
+function debit(x){
+  x=Math.max(0,Math.min(x,funds()));
+  const c=Math.min(G.cash,x);G.cash-=c;G.bank-=(x-c);
+  return x;
+}
+const guards=()=>Math.pow(0.6,G.sec);
+const bills=()=>LIVING+HOME[G.home].up+CAR[G.car].up;
+function price(r){
+  const n=Date.now();let p=r.price*G.mult[r.id]*(1+CAR[G.car].sale)*(A.ent.founder?1.1:1)*adMult();
+  const b=G.boost[r.id];if(b&&n<b.until)p*=b.m;
+  if(G.allBoost&&n<G.allBoost.until)p*=G.allBoost.m;
+  return p;
+}
+function ips(){
+  return ownedRes().reduce((a,r)=>a+(halted(r.state)?0:nodeRate(r)*price(r)),0);
+}
+function sell(id){
+  const r=RES_BY[id],amt=G.stock[id];
+  if(amt<=0)return 0;
+  const v=amt*price(r);
+  G.cash+=v;G.total+=v;G.stock[id]=0;
+  G.mult[id]=Math.max(0.55,G.mult[id]*(1-0.2*Math.min(1,amt/cap())));
+  return v;
+}
+function buyInfo(r){
+  const g=1.15,first=r.price*15*Math.pow(g,G.lvl[r.id]);
+  let n;
+  if(G.qty==='max'){n=Math.floor(Math.log(1+funds()*(g-1)/first)/Math.log(g));if(!(n>=1))n=1;}
+  else n=+G.qty;
+  return {n,cost:Math.ceil(first*(Math.pow(g,n)-1)/(g-1))};
+}
+function say(msg){
+  const n=$('#news');n.textContent=msg;
+  n.classList.remove('pulse');void n.offsetWidth;n.classList.add('pulse');
+  G.log.unshift(msg);if(G.log.length>12)G.log.length=12;
+}
+
+/* ---------- pop-up decisions ---------- */
+function openModal(d){
+  G.modal=d;renderModal();
+}
+function renderModal(){
+  const m=$('#modal'),d=G.modal;
+  if(!d){m.hidden=true;m.innerHTML='';return;}
+  m.hidden=false;
+  const body=d.done
+    ?`<div class="choices"><button class="big" data-m="done">Continue</button></div>`
+    :`<div class="choices">${d.choices.map((c,i)=>`<button data-m="${i}" ${c.cost?`data-cost="${c.cost}"`:''} ${c.wait?`data-wait="${c.wait}"`:''}><b>${c.label}</b><span>${c.hint||''}</span></button>`).join('')}</div>`;
+  m.innerHTML=`<div class="card ${d.kind==='crime'?'danger':''}"><h2>${d.done?'What happened':d.title}</h2>
+    ${d.agency&&!d.done?`<p class="agency">${d.agency}</p>`:''}<p class="txt">${d.text}</p>${body}</div>`;
+  const first=$('#modal button:not(:disabled)');if(first)first.focus();
+  refresh();
+}
+$('#modal').addEventListener('click',e=>{
+  const b=e.target.closest('[data-m]');if(!b||b.disabled||!G.modal)return;
+  const d=G.modal;
+  if(b.dataset.m==='done'){G.modal=null;renderModal();G.nextEv=Math.max(G.nextEv,20);return;}
+  const res=d.choices[+b.dataset.m].fn();
+  d.done=true;d.text=res;say(res);renderModal();
+});
+
+/* ---------- crime ---------- */
+function weightedState(){
+  const pool=[];
+  STATES.filter(s=>G.unlocked[s.id]).forEach(s=>{for(let i=0;i<s.risk;i++)pool.push(s);});
+  return pick(pool);
+}
+function robEvent(){
+  const kinds=[];
+  if(G.cash>=800){kinds.push('road','home');}
+  if(ownedRes().some(r=>G.stock[r.id]>0))kinds.push('pit');
+  if(!kinds.length)return false;
+  const kind=pick(kinds),s=weightedState();
+  if(kind==='pit'){
+    const held=ownedRes().filter(r=>G.stock[r.id]>0).sort((a,b)=>G.stock[b.id]*b.price-G.stock[a.id]*a.price);
+    const r=held[0],vig=Math.ceil(G.cash*0.03);
+    openModal({kind:'crime',title:'Bandits at the pit',
+      text:`Armed bandits storm your ${s.name} site and eye your ${r.name} stockpile. What do you do?`,
+      choices:[
+        {label:'Let them take what they want',hint:'You lose a large part of that stockpile',fn:()=>{const l=G.stock[r.id]*0.4*guards();G.stock[r.id]-=l;return `They load up ${units(l)} ${r.unit} of ${r.name} and leave.`;}},
+        {label:'Fight back with your crew',hint:`${pct(Math.min(0.9,0.35+0.2*G.sec))} chance to drive them off, worse loss if it fails`,fn:()=>{
+          if(Math.random()<Math.min(0.9,0.35+0.2*G.sec))return 'Your crew drives the bandits off. Nothing is lost.';
+          const l=G.stock[r.id]*0.7*guards();G.stock[r.id]-=l;return `The fight goes badly. You lose ${units(l)} ${r.unit} of ${r.name}.`;}},
+        {label:'Pay local vigilantes to guard it',hint:`Costs ${naira(vig)}. The stockpile is safe.`,cost:vig,fn:()=>{const p=debit(vig);return `You pay ${naira(p)} and the vigilantes see the bandits off.`;}}
+      ]});
+    return true;
+  }
+  const road=kind==='road',factor=()=>(road?CAR[G.car].prot:HOME[G.home].prot)*guards();
+  const esc=Math.ceil(G.cash*0.05);
+  openModal({kind:'crime',title:road?'Armed robbers on the road':'Break-in at your home',
+    text:road?`Armed men block your convoy near ${s.name} and demand the cash you are carrying. Money in the bank is safe.`
+             :`Burglars break into your home looking for cash. Money in the bank is safe.`,
+    choices:[
+      {label:'Hand over the cash',hint:'You lose a share of your cash on hand',fn:()=>{const l=Math.floor(G.cash*0.2*factor());G.cash-=l;return `They take ${naira(l)} and disappear.`;}},
+      {label:road?'Try to outrun them':'Raise the alarm',hint:`${pct(Math.min(0.8,0.45+0.1*G.sec))} chance of a clean escape, a bigger loss if it fails`,fn:()=>{
+        if(Math.random()<Math.min(0.8,0.45+0.1*G.sec))return road?'You floor it and lose them. Nothing is lost.':'The neighbours rush out and the burglars run. Nothing is lost.';
+        const l=Math.floor(G.cash*0.4*factor());G.cash-=l;return `It goes wrong. They take ${naira(l)}.`;}},
+      {label:road?'Pay for a private escort':'Pay the neighbourhood watch',hint:`Costs ${naira(esc)}. Your cash stays safe.`,cost:esc,fn:()=>{const p=debit(esc);return `You pay ${naira(p)} and the threat melts away.`;}}
+    ]});
+  return true;
+}
+
+/* ---------- government charges ---------- */
+function seal(){
+  const s=pick(STATES.filter(x=>G.unlocked[x.id]));
+  G.halt={s:s.id,until:Date.now()+45000,why:'sealed'};
+  return s;
+}
+function govEvent(){
+  if(G.total<3000||G.govCd>0)return false;
+  const pool=['licence','tax','env'];
+  if(G.unlocked.bayelsa)pool.push('royalty');
+  let k=pick(pool);
+  const tax=Math.ceil((G.total-G.taxBase)*0.075);
+  const roy=Math.ceil(Math.max(1000,['oil','gas','cond'].reduce((a,id)=>a+G.stock[id]*price(RES_BY[id]),0)*0.1));
+  if(k==='tax'&&tax<100)k='licence';
+  const sc=Math.max(1,ips());
+  let d;
+  if(k==='licence'){
+    const fee=Math.ceil(Math.max(300,sc*25));
+    d={kind:'gov',title:'Licence renewal due',agency:'Mining Cadastre Office',
+      text:'Your mineral titles are up for renewal. The office wants its annual fee.',
+      choices:[
+        {label:'Pay the fee',hint:naira(fee),cost:fee,fn:()=>{const p=debit(fee);return `You pay ${naira(p)}. Your titles are valid again.`;}},
+        {label:'Ask for an extension',hint:'60% chance they halve the fee, otherwise a late charge',fn:()=>{
+          if(Math.random()<0.6){const p=debit(Math.ceil(fee/2));return `Extension granted. You pay ${naira(p)}.`;}
+          const p=debit(Math.ceil(fee*1.25));return `Request refused and a late charge added. You pay ${naira(p)}.`;}},
+        {label:'Delay payment',hint:'Officials seal one of your sites for 45 seconds',fn:()=>{const s=seal();return `Officials seal your pits in ${s.name} for 45 seconds. The fee is still owed next time.`;}}
+      ]};
+  }else if(k==='tax'){
+    d={kind:'gov',title:'Tax assessment',agency:'Nigeria Revenue Service',
+      text:`Your sales since the last assessment come to ${naira(G.total-G.taxBase)}. The tax is 7.5% of that.`,
+      choices:[
+        {label:'Pay the tax',hint:naira(tax),cost:tax,fn:()=>{const p=debit(tax);G.taxBase=G.total;return `You pay ${naira(p)}. Your tax record is clear.`;}},
+        {label:'File an objection',hint:'50% chance the tax is halved, otherwise a 30% penalty',fn:()=>{
+          if(Math.random()<0.5){const p=debit(Math.ceil(tax/2));G.taxBase=G.total;return `Objection accepted. You pay ${naira(p)}.`;}
+          const p=debit(Math.ceil(tax*1.3));G.taxBase=G.total;return `Objection rejected with a penalty. You pay ${naira(p)}.`;}},
+        {label:'Delay payment',hint:'A site is sealed for 45 seconds and the bill grows',fn:()=>{const s=seal();return `Your pits in ${s.name} are sealed for 45 seconds. The tax stays on your record and keeps growing.`;}}
+      ]};
+  }else if(k==='env'){
+    const fee=Math.ceil(Math.max(500,sc*30));
+    d={kind:'gov',title:'Environmental fine',agency:'NESREA inspectors',
+      text:'Inspectors found runoff from your pits and issued a fine.',
+      choices:[
+        {label:'Pay the fine',hint:naira(fee),cost:fee,fn:()=>{const p=debit(fee);return `You pay ${naira(p)} and promise to fix the drainage.`;}},
+        {label:'Contest the fine',hint:'50% chance it is dropped, otherwise it doubles',fn:()=>{
+          if(Math.random()<0.5)return 'The fine is dropped after review. You pay nothing.';
+          const p=debit(fee*2);return `The appeal fails and the fine doubles. You pay ${naira(p)}.`;}},
+        {label:'Delay payment',hint:'Inspectors seal a site for 45 seconds',fn:()=>{const s=seal();return `Inspectors seal your pits in ${s.name} for 45 seconds.`;}}
+      ]};
+  }else{
+    d={kind:'gov',title:'Oil and gas royalty',agency:'NUPRC',
+      text:'Your Bayelsa output is due for royalty at 10% of the value of what you hold.',
+      choices:[
+        {label:'Pay the royalty',hint:naira(roy),cost:roy,fn:()=>{const p=debit(roy);return `You pay ${naira(p)} in royalties.`;}},
+        {label:'Query the assessment',hint:'50% chance of a 40% cut, otherwise full price plus a 20% penalty',fn:()=>{
+          if(Math.random()<0.5){const p=debit(Math.ceil(roy*0.6));return `The query succeeds. You pay ${naira(p)}.`;}
+          const p=debit(Math.ceil(roy*1.2));return `The query fails. You pay ${naira(p)}.`;}},
+        {label:'Delay payment',hint:'Your Bayelsa site is sealed for 45 seconds',fn:()=>{G.halt={s:'bayelsa',until:Date.now()+45000,why:'sealed'};return 'Officials seal your Bayelsa site for 45 seconds.';}}
+      ]};
+  }
+  G.govCd=110;
+  openModal(d);
+  return true;
+}
+
+/* ---------- time ---------- */
+function walk(){
+  for(const r of RES){
+    let m=G.mult[r.id];
+    m+=(1-m)*0.05+(Math.random()-0.5)*0.09;
+    G.mult[r.id]=Math.min(1.7,Math.max(0.55,m));
+  }
+}
+function runEvent(){
+  const owned=ownedRes(),r=pick(owned),now=Date.now(),roll=Math.random();
+  if(roll<0.13){G.boost[r.id]={m:1.4,until:now+40000};say(`Buyers are chasing ${r.name}. Price up 40% for 40 seconds.`);}
+  else if(roll<0.24){G.boost[r.id]={m:0.7,until:now+40000};say(`A glut of ${r.name} abroad. Price down 30% for 40 seconds.`);}
+  else if(roll<0.31){G.allBoost={m:1.2,until:now+30000};say('The naira slides against the dollar. Every price is up 20% for 30 seconds.');}
+  else if(roll<0.39){
+    const hold=owned.filter(x=>G.stock[x.id]>0);
+    if(!hold.length){say(pick(TIPS));return;}
+    const t=pick(hold),lost=G.stock[t.id]*0.25*guards();
+    G.stock[t.id]-=lost;
+    say(`Task force raid in ${STATE_BY[t.state].name}. They seize ${units(lost)} ${t.unit} of ${t.name}.${G.sec?'':' Security guards cut losses like this.'}`);
+  }
+  else if(roll<0.49){
+    const s=pick(STATES.filter(x=>G.unlocked[x.id]));
+    G.halt={s:s.id,until:now+20000,why:'flood'};
+    say(`Heavy rain floods the pits in ${s.name}. Digging stops there for 20 seconds.`);
+  }
+  else if(roll<0.70){if(!robEvent())say(pick(TIPS));}
+  else if(roll<0.90){if(!govEvent())say(pick(TIPS));}
+  else say(pick(TIPS));
+}
+function payBills(){
+  const due=bills()+G.owed;
+  if(funds()>=due){debit(due);G.owed=0;return;}
+  const paid=debit(funds());
+  G.owed=due-paid;
+  if(G.owed>bills()*3){
+    if(G.home>0){G.home--;say(`Your landlord loses patience. You are back in ${HOME[G.home].n}.`);G.owed=0;}
+    else if(G.car>0){G.car--;say(`Your car is repossessed. You are back to ${CAR[G.car].n}.`);G.owed=0;}
+    else G.owed=bills()*3;
+  }else say(`Bills are behind. You owe ${naira(G.owed)}. Sell something soon.`);
+}
+function tick(dt){
+  const c=cap();
+  for(const r of ownedRes()){
+    if(halted(r.state))continue;
+    const add=nodeRate(r)*dt;
+    if(add>0)G.stock[r.id]=Math.min(c,G.stock[r.id]+add);
+  }
+  tick.acc=(tick.acc||0)+dt;
+  while(tick.acc>=1){tick.acc-=1;walk();}
+  if(G.agent&&G.auto)for(const r of ownedRes())if(G.stock[r.id]>=c*0.9)sell(r.id);
+  G.dayT+=dt;if(G.dayT>=30){G.dayT-=30;G.day++;if(G.day>=2)payBills();}
+  G.govCd-=dt;
+  G.nextEv-=dt;
+  if(G.nextEv<=0&&!G.modal){runEvent();G.nextEv=35+Math.random()*25;}
+  if(!G.won&&G.total>=1e9){G.won=true;say('You have sold ₦1 billion of Nigerian earth. The industry calls you Chairman. Keep going.');}
+}
+
+/* ---------- saving ---------- */
+const SAVE_KEY='naija-mining-tycoon-v2';
+const SAVE_FIELDS=['cash','bank','total','day','dayT','eq','wh','agent','auto','sec','home','car','owed','taxBase','unlocked','lvl','stock','mult','cur','won'];
+function snapshot(){const o={v:2,t:Date.now()};SAVE_FIELDS.forEach(k=>o[k]=G[k]);return o;}
+function applySave(o){
+  SAVE_FIELDS.forEach(k=>{
+    if(o[k]===undefined||o[k]===null)return;
+    if(typeof G[k]==='object')Object.assign(G[k],o[k]);else G[k]=o[k];
+  });
+  ['cash','bank','total','owed','taxBase'].forEach(k=>{if(!Number.isFinite(G[k])||G[k]<0)G[k]=0;});
+  G.home=Math.min(HOME.length-1,Math.max(0,G.home|0));G.car=Math.min(CAR.length-1,Math.max(0,G.car|0));
+  if(!STATE_BY[G.cur]||!G.unlocked[G.cur])G.cur='nasarawa';
+  G.unlocked.nasarawa=true;
+}
+const encode=()=>btoa(unescape(encodeURIComponent(JSON.stringify(snapshot()))));
+const decode=s=>JSON.parse(decodeURIComponent(escape(atob(s.trim()))));
+function save(){
+  if(G.wiping)return;
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(snapshot()));G.savedOk=true;}catch(e){G.savedOk=false;}
+}
+function offline(sec){
+  let earned=0,filled=false;const c=cap();
+  for(const r of ownedRes()){
+    const out=nodeRate(r)*sec;if(out<=0)continue;
+    if(G.agent&&G.auto){const v=out*r.price*0.9;G.cash+=v;G.total+=v;earned+=v;}
+    else{G.stock[r.id]=Math.min(c,G.stock[r.id]+out);filled=true;}
+  }
+  if(earned>0)say(`While you were away your sales agent earned ${naira(earned)}.`);
+  else if(filled)say('Welcome back. Your crews filled the stores while you were away.');
+}
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);G.savedOk=true;
+    if(!raw)return false;
+    const o=JSON.parse(raw);applySave(o);
+    const away=Math.min((Date.now()-(o.t||Date.now()))/1000,7200);
+    if(away>30)offline(away);else say('Welcome back.');
+    return true;
+  }catch(e){G.savedOk=false;return false;}
+}
+async function copyCode(){
+  const code=encode(),box=$('#codebox');
+  if(box)box.value=code;
+  try{await navigator.clipboard.writeText(code);say('Save code copied. Keep it somewhere safe.');}
+  catch(e){if(box){box.focus();box.select();}say('Copy the save code from the box.');}
+}
+function loadCode(){
+  const box=$('#codebox');
+  try{
+    applySave(decode(box.value));G.modal=null;renderModal();G.tab='mine';render();save();say('Save loaded.');
+  }catch(e){say('That save code did not work. Paste the full code and try again.');}
+}
+
+/* ---------- views ---------- */
+function nodeHTML(r,i,s){
+  const prev=s.res[i-1];
+  if(i>0&&G.lvl[prev.id]<3)
+    return `<article class="node locked"><h3>${r.name}</h3><p>Upgrade ${prev.name} to level 3 to open this pit.</p></article>`;
+  return `<article class="node" data-r="${r.id}" style="--c:${r.color};--on:${onColor(r.color)}">
+    <div class="head"><div><h3>${r.name}</h3><p class="stk"><span data-k="stock"></span> of <span data-k="cap"></span> ${r.unit}</p></div>
+    <div class="px"><b data-k="price"></b><span data-k="trend"></span></div></div>
+    <div class="bar"><i data-k="bar"></i></div>
+    <button class="dig" data-act="dig"><span>Dig ${r.name.toLowerCase()}</span><small data-k="tap"></small></button>
+    <div class="acts">
+      <button data-act="buy"><span>Upgrade pit <em data-k="buyn"></em></span><b data-k="cost"></b></button>
+      <button data-act="sell"><span>Sell all</span><b data-k="worth"></b></button>
+    </div>
+    <p class="rate" data-k="rate"></p></article>`;
+}
+function mineHTML(){
+  const s=STATE_BY[G.cur];
+  const chips=STATES.filter(x=>G.unlocked[x.id]).map(x=>`<button class="chip" data-act="state" data-s="${x.id}" aria-pressed="${x.id===G.cur}">${x.name}</button>`).join('');
+  const q=['1','10','max'].map(v=>`<button data-act="qty" data-q="${v}" aria-pressed="${G.qty===v}">${v==='max'?'Max':v}</button>`).join('');
+  return `<aside id="sponsor" class="sponsor" hidden></aside><div class="chips">${chips}</div><p class="tag">${s.tag}</p>
+    <div class="qty" role="group" aria-label="Upgrade amount"><span>Upgrade by</span>${q}</div>
+    ${s.res.map((r,i)=>nodeHTML(r,i,s)).join('')}`;
+}
+function marketHTML(){
+  const rows=ownedRes().map(r=>`<article class="mrow" data-r="${r.id}" style="--c:${r.color}">
+    <h3>${r.name}</h3>
+    <button data-act="sell">Sell<br><span data-k="worth"></span></button>
+    <div class="px"><b data-k="price"></b><span data-k="trend"></span></div>
+    <div class="qt"><span data-k="stock"></span> ${r.unit} in store, ${STATE_BY[r.state].name}</div></article>`).join('');
+  const agent=G.agent
+    ?`<button class="agent" data-act="auto" aria-pressed="${G.auto}">Sales agent is ${G.auto?'on':'off'}. Tap to switch.</button>`
+    :`<p class="hint" style="margin-top:14px">A sales agent in Upgrades sells full stores for you.</p>`;
+  return `<div class="mhead"><div><p>Stock in your stores</p><b id="stockval"></b></div><button class="big" data-act="sellall">Sell everything</button></div>
+    <p class="hint">Prices drift all the time. Big sales push a price down, then it recovers.</p>${rows}${agent}`;
+}
+function upCard(st,title,desc,right){
+  return `<article class="up ${st}"><div><h3>${title}</h3><p>${desc}</p></div>${right}</article>`;
+}
+function upHTMLBase(){
+  let h='<h2 class="sec2">Equipment</h2><p class="hint">Each machine multiplies what you dig and what your crews dig.</p>';
+  EQ.forEach((e,i)=>{
+    const st=i<G.eq?'own':i===G.eq?'next':'later';
+    const right=st==='own'?'<span class="tick">Owned</span>':st==='next'
+      ?`<button data-act="eq" data-cost="${e.c}"><span>Buy</span><b>${naira(e.c)}</b></button>`
+      :`<span class="lock">${naira(e.c)}</span>`;
+    h+=upCard(st,e.n,`<span class="mx">x${e.m} output.</span> ${e.d}`,right);
+  });
+  h+='<h2 class="sec2">Warehouse</h2>';
+  h+=upCard('','Bigger stores',`Each mineral holds ${fmt(cap())} now.${G.wh<WH.length?` Next upgrade doubles it to ${fmt(cap()*2)}.`:' Fully expanded.'}`,
+    G.wh<WH.length?`<button data-act="wh" data-cost="${WH[G.wh]}"><span>Expand</span><b>${naira(WH[G.wh])}</b></button>`:'<span class="tick">Maxed</span>');
+  h+='<h2 class="sec2">Staff</h2>';
+  h+=upCard(G.agent?'own':'','Sales agent','Sells any mineral when its store passes 90% full, even while you are away.',
+    G.agent?'<span class="tick">Hired</span>':`<button data-act="agent" data-cost="${AGENT_COST}"><span>Hire</span><b>${naira(AGENT_COST)}</b></button>`);
+  h+=upCard('','Security guards',`Level ${G.sec} of ${SEC.length}. Each level cuts losses from raids and robberies by 40% and helps you fight back.`,
+    G.sec<SEC.length?`<button data-act="sec" data-cost="${SEC[G.sec]}"><span>Hire</span><b>${naira(SEC[G.sec])}</b></button>`:'<span class="tick">Maxed</span>');
+  return h;
+}
+function upHTML(){return shopTop()+upHTMLBase()+brandHTML();}
+function tierList(list,cur,actName,perk){
+  return list.map((t,i)=>{
+    if(i<cur)return '';
+    if(i===cur)return upCard('own',t.n,perk(t),'<span class="tick">Current</span>');
+    if(i===cur+1)return upCard('next',t.n,perk(t),`<button data-act="${actName}" data-cost="${t.c}"><span>Buy</span><b>${naira(t.c)}</b></button>`);
+    return upCard('later',t.n,perk(t),`<span class="lock">${naira(t.c)}</span>`);
+  }).join('');
+}
+function lifeHTML(){
+  const h0=HOME[G.home],c0=CAR[G.car];
+  let h=`<h2>Daily bills</h2><p class="hint">A day passes every 30 seconds. Bills come out of your cash first, then the bank.</p>
+   <div class="bills"><div><span>Food, fuel and data</span><b>${naira(LIVING)}</b></div>
+   <div><span>Home upkeep</span><b>${naira(h0.up)}</b></div><div><span>Car upkeep</span><b>${naira(c0.up)}</b></div>
+   <div class="tot"><span>Total each day</span><b>${naira(bills())}</b></div>
+   ${G.owed>0?`<div class="owed"><span>Unpaid so far</span><b>${naira(G.owed)}</b></div>`:''}</div>
+   <p class="hint">Fall too far behind and you lose your home, then your car.</p>`;
+  h+=`<h2 class="sec2">Bank</h2><div class="bank"><div class="row2"><span>Cash on hand</span><b id="lcash"></b></div>
+   <div class="row2"><span>In the bank</span><b id="lbank"></b></div>
+   <p class="hint" style="margin:6px 0 0">Robbers only take cash on hand. Purchases, bills and government charges draw on both.</p>
+   <div class="btns"><button data-act="deposit">Deposit all cash</button><button data-act="withdraw">Withdraw all</button></div></div>`;
+  h+='<h2 class="sec2">Home</h2><p class="hint">A better home keeps burglars from taking much.</p>';
+  h+=tierList(HOME,G.home,'home',t=>`Upkeep ${naira(t.up)} per day. Break-ins cost you ${pct(t.prot)} of the normal loss.`);
+  h+='<h2 class="sec2">Car</h2><p class="hint">A better car sells your minerals for more and scares off highway robbers.</p>';
+  h+=tierList(CAR,G.car,'car',t=>`Upkeep ${naira(t.up)} per day.${t.sale?` Prices +${pct(t.sale)}.`:''} Road robberies cost you ${pct(t.prot)} of the normal loss.`);
+  h+=`<h2 class="sec2">Save</h2><p class="hint" id="savestat"></p>
+   <button class="btn2" data-act="copycode">Copy save code</button><button class="btn2" data-act="loadcode">Load save code</button>
+   <textarea id="codebox" aria-label="Save code" placeholder="Paste a save code here and tap Load save code"></textarea>
+   <button class="btn2 danger" data-act="reset">${G.resetArm?'Tap again to erase everything':'Start over'}</button>`;
+  h+=`<h2 class="sec2">Recent news</h2><ul class="log">${G.log.map(l=>`<li>${l}</li>`).join('')||'<li>Nothing yet.</li>'}</ul>`;
+  return h;
+}
+function mapHTML(){
+  const px=lon=>((lon-2.4)*28).toFixed(1),py=lat=>((14.2-lat)*28).toFixed(1);
+  const poly=NG.map(p=>px(p[0])+','+py(p[1])).join(' ');
+  const sel=STATE_BY[G.sel||G.cur];
+  const dots=STATES.map(s=>{
+    const u=G.unlocked[s.id],x=px(s.x),y=py(s.y);
+    return `<g data-act="mapsel" data-s="${s.id}" tabindex="0" role="button" aria-label="${s.name}, ${u?'open':'locked'}">
+      <circle cx="${x}" cy="${y}" r="17" fill="transparent"/>
+      ${s.id===sel.id?`<circle cx="${x}" cy="${y}" r="12" fill="none" stroke="#F1EDE0" stroke-width="1.5"/>`:''}
+      ${u?`<circle cx="${x}" cy="${y}" r="7" fill="#E8B33A" stroke="#12322B" stroke-width="2"/>`
+         :`<circle cx="${x}" cy="${y}" r="6" fill="#12322B" stroke="#9DB8AD" stroke-width="1.5" stroke-dasharray="3 2"/>`}
+      <text x="${+x+s.lx}" y="${+y+s.ly}" text-anchor="${s.a}">${s.name}</text></g>`;
+  }).join('');
+  const u=G.unlocked[sel.id];
+  const list=sel.res.map(r=>`<li><span>${r.name}</span><span>${naira(r.price)} per ${r.unit}</span></li>`).join('');
+  const risk=['','Low','Medium','High'][sel.risk];
+  const btn=u
+    ?`<button class="big" data-act="goto" data-s="${sel.id}">Mine in ${sel.name}</button>`
+    :`<button class="big" data-act="unlock" data-s="${sel.id}" data-cost="${sel.cost}">Buy licence for ${naira(sel.cost)}</button>`;
+  return `<div class="mapbox"><svg viewBox="0 0 350 290" role="img" aria-label="Map of Nigeria with mining states">
+    <defs><pattern id="strata" width="12" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-5)">
+      <rect width="12" height="28" fill="#1F4B40"/><rect y="0" width="12" height="8" fill="#275A4D"/><rect y="14" width="12" height="4" fill="#1A4036"/></pattern></defs>
+    <polygon points="${poly}" fill="url(#strata)" stroke="#E8B33A" stroke-width="1.6" stroke-linejoin="round"/>${dots}</svg></div>
+    <div class="panel"><h2>${sel.name}</h2><p class="hint" style="margin:4px 0 0">${sel.tag} Robbery risk: ${risk}.</p><ul>${list}</ul>${btn}</div>`;
+}
+function render(){
+  $$('nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===G.tab?'page':'false'));
+  $('#view').innerHTML=({mine:mineHTML,market:marketHTML,upgrades:upHTML,life:lifeHTML,chat:chatHTML,map:mapHTML})[G.tab]();
+  if(G.tab==='mine')showSponsor();
+  if(G.tab==='chat')chatMount();
+  refresh();
+}
+
+/* ---------- live updates (text only, so taps never get lost) ---------- */
+function refresh(){
+  $('#cash').textContent=naira(G.cash);
+  $('#ips').textContent=naira(ips())+' per second';
+  $('#day').textContent='Day '+G.day;
+  $('#bank').textContent='Bank '+naira(G.bank);
+  const c=cap();
+  $$('[data-r]').forEach(el=>{
+    const r=RES_BY[el.dataset.r],set=(k,t)=>{const n=$(`[data-k="${k}"]`,el);if(n&&n.textContent!==t)n.textContent=t;};
+    const p=price(r),pc=Math.round((p/r.price-1)*100),st=G.stock[r.id];
+    set('stock',units(st));set('cap',fmt(c));
+    set('price',naira(p));
+    const tr=$('[data-k="trend"]',el);
+    if(tr){tr.textContent=(pc>=0?'+':'')+pc+'%';tr.className=pc>=0?'up':'down';}
+    set('worth',naira(st*p));
+    const bar=$('[data-k="bar"]',el);
+    if(bar){bar.style.width=Math.min(100,st/c*100)+'%';el.classList.toggle('full',st>=c-1e-9);}
+    set('tap','+'+units(tapUnits(r))+' '+r.unit+' per tap');
+    const bi=$('[data-act="buy"]',el);
+    if(bi){const i=buyInfo(r);set('buyn','+'+i.n);set('cost',naira(i.cost));bi.disabled=funds()<i.cost;}
+    const fl=halted(r.state);el.classList.toggle('flooded',fl);
+    const rate=$('[data-k="rate"]',el);
+    if(rate){
+      const l=G.lvl[r.id];
+      rate.textContent=fl?(G.halt.why==='sealed'?'Sealed by officials. Digging is paused.':'Flooded. Digging is paused.')
+        :(l?`Level ${l}. Crews dig ${units(nodeRate(r))} ${r.unit} per second.`:'No crew yet. Upgrade the pit to hire one.');
+    }
+  });
+  const sv=$('#stockval');
+  if(sv)sv.textContent=naira(ownedRes().reduce((a,r)=>a+G.stock[r.id]*price(r),0));
+  const lc=$('#lcash');if(lc)lc.textContent=naira(G.cash);
+  const lb=$('#lbank');if(lb)lb.textContent=naira(G.bank);
+  const ss=$('#savestat');
+  if(ss)ss.textContent=G.savedOk===false?'Autosave is not available here. Copy your save code to keep your progress.':'Progress autosaves in this browser. Copy a save code to move it to another device.';
+  $$('[data-cost]').forEach(b=>{b.disabled=funds()<+b.dataset.cost;});
+  $$('[data-wait]').forEach(b=>{
+    const left=Math.ceil((+b.dataset.wait-Date.now())/1000);b.disabled=left>0;
+    const sp=b.querySelector('span');if(sp)sp.textContent=left>0?`Available in ${left} seconds`:'Tap to claim';
+  });
+}
+function floatText(btn,e,text){
+  const rect=btn.getBoundingClientRect();
+  const x=(e&&e.clientX)?e.clientX-rect.left:rect.width/2;
+  const y=(e&&e.clientY)?e.clientY-rect.top:rect.height/2;
+  const f=document.createElement('span');
+  f.className='float';f.textContent=text;f.style.left=x+'px';f.style.top=y+'px';
+  btn.appendChild(f);setTimeout(()=>f.remove(),900);
+}
+
+/* ---------- input ---------- */
+function act(b,e){
+  const a=b.dataset.act,rEl=b.closest('[data-r]'),r=rEl&&RES_BY[rEl.dataset.r];
+  if(a!=='reset'&&G.resetArm){G.resetArm=false;if(G.tab==='life')render();}
+  if(a!=='cancelsub'&&G.cancelArm){G.cancelArm=null;$$('[data-act="cancelsub"] span').forEach(x=>{x.textContent='Cancel plan';});}
+  switch(a){
+    case 'dig':{
+      if(halted(r.state)){say(G.halt.why==='sealed'?'Officials have sealed this site. Wait it out.':'This pit is flooded. Wait for the water to drain.');return;}
+      const room=cap()-G.stock[r.id];
+      if(room<=0.0001){say(`Your ${r.name} store is full. Sell some or expand the warehouse.`);return;}
+      const got=Math.min(tapUnits(r),room);G.stock[r.id]+=got;
+      floatText(b,e,'+'+units(got));refresh();break;}
+    case 'sell':{const v=sell(r.id);if(v)floatText(b,e,'+'+naira(v));refresh();break;}
+    case 'sellall':{let t=0;ownedRes().forEach(x=>t+=sell(x.id));say(t?`Sold everything for ${naira(t)}.`:'Nothing in store to sell yet.');refresh();break;}
+    case 'buy':{const i=buyInfo(r);if(funds()<i.cost)return;debit(i.cost);G.lvl[r.id]+=i.n;render();break;}
+    case 'qty':G.qty=b.dataset.q;render();break;
+    case 'state':G.cur=b.dataset.s;render();break;
+    case 'eq':{const e2=EQ[G.eq];if(!e2||funds()<e2.c)return;debit(e2.c);G.eq++;say(`${e2.n} bought. Output is now x${equipMult()}.`);render();break;}
+    case 'wh':{const c=WH[G.wh];if(c===undefined||funds()<c)return;debit(c);G.wh++;say(`Stores expanded. Each mineral now holds ${fmt(cap())}.`);render();break;}
+    case 'agent':if(funds()<AGENT_COST)return;debit(AGENT_COST);G.agent=true;say('Sales agent hired. Full stores sell automatically.');render();break;
+    case 'sec':{const c=SEC[G.sec];if(c===undefined||funds()<c)return;debit(c);G.sec++;say('Security guards hired. Raids and robberies will cost you less.');render();break;}
+    case 'home':{const t=HOME[G.home+1];if(!t||funds()<t.c)return;debit(t.c);G.home++;say(`You moved to a ${t.n.toLowerCase()}.`);render();break;}
+    case 'car':{const t=CAR[G.car+1];if(!t||funds()<t.c)return;debit(t.c);G.car++;say(`You now drive a ${t.n.toLowerCase()}.`);render();break;}
+    case 'deposit':{const x=G.cash;G.bank+=x;G.cash=0;say(x>0?`Deposited ${naira(x)}. Robbers cannot touch it.`:'No cash on hand to deposit.');refresh();break;}
+    case 'withdraw':{const x=G.bank;G.cash+=x;G.bank=0;say(x>0?`Withdrew ${naira(x)}. Keep an eye out for robbers.`:'Nothing in the bank to withdraw.');refresh();break;}
+    case 'cancelsub':cancelSub(b.dataset.code);break;
+    case 'cardsub':cardSub(b.dataset.code);break;
+    case 'watchad':watchAd();break;
+    case 'goshop':G.tab='upgrades';render();window.scrollTo(0,0);break;
+    case 'buysku':buySku(b.dataset.sku);break;
+    case 'redeem':redeemCash();break;
+    case 'brandpay':{const v=id=>(($('#'+id)||{}).value||'').trim();buySku(($('#bpkg')||{}).value,{brand:v('bname'),tagline:v('btag'),url:v('burl'),contact:v('bmail')});break;}
+    case 'chatroom':chatJoin(b.dataset.ch);break;
+    case 'chatsend':chatSend();break;
+    case 'chatname':chatRegister();break;
+    case 'whisper':{const i=$('#chatinput');if(i){i.value='/w '+b.dataset.n+' ';i.focus();}break;}
+    case 'copykey':copyKey();break;
+    case 'restorekey':restoreKey();break;
+    case 'copycode':copyCode();break;
+    case 'loadcode':loadCode();break;
+    case 'reset':
+      if(!G.resetArm){G.resetArm=true;render();return;}
+      G.wiping=true;try{localStorage.removeItem(SAVE_KEY);}catch(err){}
+      location.reload();break;
+    case 'auto':G.auto=!G.auto;render();break;
+    case 'mapsel':G.sel=b.dataset.s;render();break;
+    case 'goto':G.cur=b.dataset.s;G.tab='mine';render();break;
+    case 'unlock':{const s=STATE_BY[b.dataset.s];if(funds()<s.cost)return;debit(s.cost);G.unlocked[s.id]=true;G.cur=s.id;G.tab='mine';say(`${s.name} licence granted. Open your first pit.`);render();break;}
+  }
+}
+$('#view').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&!b.disabled)act(b,e);});
+$('#view').addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('g[data-act]')){e.preventDefault();act(e.target,null);}
+});
+$('#view').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatinput'){e.preventDefault();chatSend();}});
+$('#view').addEventListener('click',e=>{const a=e.target.closest('a[data-ad]');if(a)adEvent(+a.dataset.ad,'clicks');});
+$$('nav button').forEach(b=>b.addEventListener('click',()=>{G.tab=b.dataset.tab;G.resetArm=false;if(G.tab==='map')G.sel=G.cur;render();window.scrollTo(0,0);}));
+
+
+/* ---------- accounts, ads, payments and chat (these need the server) ---------- */
+const ACC_KEY='naija-account-v1';
+const A={token:null,name:null,email:'',ent:{boostUntil:0,noAds:false,founder:false},credits:{},subs:[]};
+const ADS=[];let adIdx=0,payBusy=false;
+const ADQ={imps:{},clicks:{}};
+const SKUS=[
+ {id:'boost_24h',n:'Gold Rush boost',d:'Double output for 24 hours.',ngn:500},
+ {id:'cash_s',n:'Cash pack',d:'Instant cash worth 15 minutes of your income.',ngn:300},
+ {id:'no_ads',n:'Ad-free',d:'Hides sponsor banners for good.',ngn:1500},
+ {id:'founder',n:'Founder status',d:'Founder star in chat and +10% on every sale.',ngn:5000}
+];
+const BRAND_PKGS=[
+ {id:'brand_monthly',n:'Monthly plan',usd:500,per:'month'},
+ {id:'brand_yearly',n:'Yearly plan, 2 months free',usd:5000,per:'year'}
+];
+function loadAcc(){try{const o=JSON.parse(localStorage.getItem(ACC_KEY)||'null');if(o){A.token=o.token||null;A.name=o.name||null;A.email=o.email||'';}}catch(e){}}
+function saveAcc(){try{localStorage.setItem(ACC_KEY,JSON.stringify({token:A.token,name:A.name,email:A.email}));}catch(e){}}
+async function api(path,body,token){
+  if(!CFG.API)throw new Error('Server not connected');
+  const tk=token||A.token;
+  const r=await fetch(CFG.API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e;}
+  return j;
+}
+async function refreshMe(){
+  if(!CFG.API||!A.token)return;
+  try{
+    const j=await api('/api/me');
+    A.name=j.name;A.ent={boostUntil:j.ent.boostUntil||0,noAds:!!j.ent.noAds,founder:!!j.ent.founder};A.credits=j.credits||{};A.subs=j.subs||[];
+    if(G.tab==='upgrades'||G.tab==='chat')render();
+  }catch(e){if(e.status===401){A.token=null;saveAcc();}}
+}
+async function fetchAds(){
+  try{const j=await api('/api/ads');ADS.length=0;(j.ads||[]).filter(a=>/^https:\/\//.test(a.url)).forEach(a=>ADS.push(a));}catch(e){}
+}
+/* ad views and clicks are counted here and sent in one small batch a minute */
+function adEvent(id,kind){ADQ[kind][id]=(ADQ[kind][id]||0)+1;}
+function flushAdEvents(){
+  if(!CFG.API||(!Object.keys(ADQ.imps).length&&!Object.keys(ADQ.clicks).length))return;
+  const body=JSON.stringify(ADQ);ADQ.imps={};ADQ.clicks={};
+  try{fetch(CFG.API+'/api/ads/events',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});}catch(e){}
+}
+function showSponsor(){
+  const el=$('#sponsor');if(!el)return;
+  if(A.ent.noAds){el.hidden=true;return;}
+  el.hidden=false;
+  const ad=ADS.length?ADS[adIdx++%ADS.length]:null;
+  if(ad){
+    el.innerHTML=`<small>Sponsored</small><a href="${esc(ad.url)}" target="_blank" rel="noopener noreferrer sponsored" data-ad="${+ad.id}"><b>${esc(ad.brand)}</b> ${esc(ad.tagline)}</a>`;
+    adEvent(ad.id,'imps');
+  }else el.innerHTML='<small>Your brand here</small><button data-act="goshop">Reach Nigerian miners for $500 a month</button>';
+}
+function watchAd(){
+  const left=G.adCd-Date.now();
+  if(left>0){say(`The next sponsor message is ready in ${Math.ceil(left/1000)} seconds.`);return;}
+  const ad=ADS.length?ADS[adIdx++%ADS.length]:null;
+  const text=ad?`<b>${esc(ad.brand)}</b>: ${esc(ad.tagline)}`:'This slot is open for your brand. Advertise from the Shop.';
+  if(ad)adEvent(ad.id,'imps');
+  openModal({kind:'gov',title:'Sponsor message',agency:'Stay for 15 seconds to earn the boost',text,
+    choices:[{label:'Claim the boost',hint:'Prices +50% for 2 minutes',wait:Date.now()+15000,
+      fn:()=>{G.adBoost={m:1.5,until:Date.now()+120000};G.adCd=Date.now()+300000;return 'Sponsor boost is on. Prices are up 50% for 2 minutes.';}}]});
+}
+
+function shopTop(){
+  const live=!!(CFG.API||CFG.DEMO);
+  const left=Math.max(0,A.ent.boostUntil-Date.now());
+  let h='<h2>Boosts</h2>';
+  h+=upCard('','Sponsor boost','Watch a 15 second sponsor message. Prices +50% for 2 minutes.','<button data-act="watchad"><span>Watch</span><b>Free</b></button>');
+  h+=`<h2 class="sec2">Premium</h2><p class="hint">${CFG.API?'Pay securely with Paystack. Card, bank transfer and USSD work.':CFG.DEMO?'Demo mode. No money is charged.':'Real payments switch on once the game server is connected.'}</p>
+   <label class="field">Receipt email<input id="payemail" type="email" autocomplete="email" value="${esc(A.email)}" placeholder="you@example.com"></label>`;
+  SKUS.forEach(s=>{
+    let right=`<button data-act="buysku" data-sku="${s.id}" ${live?'':'disabled'}><span>Buy</span><b>${naira(s.ngn)}</b></button>`;
+    let d=s.d;
+    if((s.id==='no_ads'&&A.ent.noAds)||(s.id==='founder'&&A.ent.founder))right='<span class="tick">Owned</span>';
+    if(s.id==='boost_24h'&&left>0)d+=` Active for ${fmtTime(left)} more.`;
+    h+=upCard(right.includes('Owned')?'own':'',s.n,d,right);
+  });
+  const n=A.credits.cash_s||0;
+  if(n>0)h+=upCard('','Cash packs ready',`You have ${n}. Each adds ${naira(Math.max(5000,Math.floor(ips()*900)))} now.`,'<button data-act="redeem"><span>Redeem</span><b>Use one</b></button>');
+  return h;
+}
+function brandHTML(){
+  const live=!!(CFG.API||CFG.DEMO);
+  return `<h2 class="sec2">Promote your brand</h2>
+   <p class="hint">Reach miners across Nigeria. Your banner shows on the Mine screen and in sponsor messages. Choose $500 a month or $5,000 a year, paid in US dollars by card through Paystack. The plan renews automatically at the end of each period until you cancel it below. Every ad is reviewed before it goes live, and links must start with https.</p>
+   <label class="field">Brand name<input id="bname" maxlength="40" autocomplete="organization"></label>
+   <label class="field">Tagline<input id="btag" maxlength="80"></label>
+   <label class="field">Link<input id="burl" type="url" inputmode="url" placeholder="https://"></label>
+   <label class="field">Contact email<input id="bmail" type="email" autocomplete="email"></label>
+   <label class="field">Package<select id="bpkg">${BRAND_PKGS.map(p=>`<option value="${p.id}">${p.n}: $${p.usd.toLocaleString('en-US')} a ${p.per}</option>`).join('')}</select></label>
+   <button class="big" style="width:100%" data-act="brandpay" ${live?'':'disabled'}>Subscribe and send for review</button>
+   <p class="hint" style="margin-top:8px">You are charged now, and again at the end of every period, until you cancel. Cancelling stops future charges and your promotion keeps running until the period you paid for ends.</p>${subsHTML()}`;
+}
+function checkBrand(b){
+  if(b.brand.length<2)return 'Add your brand name.';
+  if(b.tagline.length<5)return 'Add a tagline of at least 5 characters.';
+  if(!/^https:\/\/[^\s/]+\.[^\s/]+/.test(b.url))return 'The link must start with https:// and be your website.';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.contact))return 'Add a valid contact email.';
+  return '';
+}
+function demoGrant(sku,brand){
+  const it=SKUS.find(x=>x.id===sku);
+  if(sku.startsWith('brand_')){A.subs.unshift({code:'DEMO'+Date.now(),sku,brand:(brand&&brand.brand)||'Demo brand',status:'active',adStatus:'pending',endsAt:0});say('Demo mode. Your plan would now go to review. No money was charged.');render();return;}
+  if(sku==='boost_24h')A.ent.boostUntil=Date.now()+864e5;
+  else if(sku==='no_ads')A.ent.noAds=true;
+  else if(sku==='founder')A.ent.founder=true;
+  else if(sku==='cash_s')A.credits.cash_s=(A.credits.cash_s||0)+1;
+  say(it?`Demo mode. ${it.n} added and no money was charged.`:'Demo mode. Your ad would now go to review. No money was charged.');
+  render();
+}
+async function buySku(sku,brand){
+  if(payBusy||!sku)return;
+  if(!CFG.API){if(CFG.DEMO)demoGrant(sku,brand);else say('Payments are not connected yet.');return;}
+  if(!A.token){say('Pick a chat name on the Chat tab first. It creates the account that holds your purchase.');return;}
+  const email=((($('#payemail')||{}).value)||'').trim()||A.email||(brand&&brand.contact)||'';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){say('Enter a valid receipt email so Paystack can send your receipt.');return;}
+  if(brand){const err=checkBrand(brand);if(err){say(err);return;}}
+  A.email=email;saveAcc();payBusy=true;
+  try{const r=await api('/api/pay/init',{sku,email,brand});await openPay(r);}
+  catch(e){say('Could not start the payment: '+e.message);}
+  payBusy=false;
+}
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector(`script[src="${src}"]`))return res();
+    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+async function openPay(r){
+  try{await loadScript('https://js.paystack.co/v2/inline.js');}catch(e){}
+  if(window.PaystackPop){
+    const pop=new window.PaystackPop();
+    pop.resumeTransaction(r.access_code,{onSuccess:()=>pollPay(r.reference),onCancel:()=>say('Payment cancelled. You were not charged.')});
+  }else{window.open(r.authorization_url,'_blank','noopener');pollPay(r.reference);}
+}
+async function pollPay(ref,n=0){
+  try{
+    const j=await api('/api/pay/verify/'+encodeURIComponent(ref));
+    if(j.status==='paid'){say((j.type==='brand'||j.type==='sub')?'Payment received. Your ad is now in review. We will go live after approval.':'Payment received. Thank you!');await refreshMe();render();return;}
+  }catch(e){}
+  if(n<20)setTimeout(()=>pollPay(ref,n+1),3000);
+  else say('Still waiting for Paystack to confirm. Your purchase appears automatically once it does.');
+}
+async function redeemCash(){
+  const amt=Math.max(5000,Math.floor(ips()*900));
+  try{
+    if(CFG.API){await api('/api/redeem',{sku:'cash_s'});A.credits.cash_s=Math.max(0,(A.credits.cash_s||1)-1);}
+    else if(CFG.DEMO&&(A.credits.cash_s||0)>0)A.credits.cash_s--;
+    else return;
+    G.cash+=amt;say(`Cash pack redeemed. ${naira(amt)} added.`);render();
+  }catch(e){say('Could not redeem: '+e.message);}
+}
+
+/* brand plans: list, cancel, update card */
+function subsHTML(){
+  if(!A.subs.length)return '';
+  const d=ms=>ms?new Date(ms).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+  return '<h2 class="sec2">Your brand plans</h2>'+A.subs.map(s=>{
+    const p=BRAND_PKGS.find(x=>x.id===s.sku),on=s.status==='active'||s.status==='past_due';
+    const until=s.endsAt?` Paid until ${d(s.endsAt)}.`:'';
+    const state=s.status==='cancelled'?`Cancelled, no more charges.${until}`
+      :s.status==='past_due'?`A renewal payment failed. Update your card.${until}`
+      :s.adStatus==='pending'?'In review. Renews automatically once live.'
+      :`Renews automatically.${until}`;
+    const btns=on?`<div class="stack"><button data-act="cardsub" data-code="${esc(s.code)}"><span>Update card</span></button><button class="danger" data-act="cancelsub" data-code="${esc(s.code)}"><span>${G.cancelArm===s.code?'Tap again to cancel':'Cancel plan'}</span></button></div>`:'<span class="lock">Ended</span>';
+    return `<article class="up"><div><h3>${esc(s.brand||'Brand plan')}</h3><p>${p?esc(p.n)+' at $'+p.usd.toLocaleString('en-US')+' a '+p.per+'. ':''}${state}</p></div>${btns}</article>`;
+  }).join('');
+}
+async function cancelSub(code){
+  if(G.cancelArm!==code){
+    G.cancelArm=code;
+    $$('[data-act="cancelsub"]').forEach(x=>{if(x.dataset.code===code){const sp=x.querySelector('span');if(sp)sp.textContent='Tap again to cancel';}});
+    say('Tap Cancel plan again to confirm. Your promotion keeps running until the period you paid for ends.');return;
+  }
+  G.cancelArm=null;
+  try{
+    if(CFG.API)await api('/api/subs/cancel',{code});
+    else{const s=A.subs.find(x=>x.code===code);if(s)s.status='cancelled';}
+    say('Plan cancelled. You will not be charged again.');await refreshMe();render();
+  }catch(e){say('Could not cancel: '+e.message);}
+}
+async function cardSub(code){
+  if(!CFG.API){say('Demo mode has no card to update.');return;}
+  try{const j=await api('/api/subs/card',{code});window.open(j.link,'_blank','noopener');}
+  catch(e){say('Could not open the card page: '+e.message);}
+}
+
+/* chat */
+const CH={ws:null,ok:false,room:'global',shard:0,msgs:{},online:0,tries:0,blocked:new Set()};
+const ROOM_NAMES={global:'Global',trade:'Trade',help:'Help'};
+function wsSend(o){if(CH.ws&&CH.ws.readyState===1)CH.ws.send(JSON.stringify(o));}
+function wsConnect(){
+  if(!CFG.API||!A.token||(CH.ws&&CH.ws.readyState<2))return;
+  try{
+    const ws=new WebSocket(CFG.API.replace(/^http/,'ws')+'/ws?token='+encodeURIComponent(A.token));
+    CH.ws=ws;
+    ws.onopen=()=>{CH.ok=true;CH.tries=0;wsSend({t:'join',ch:CH.room});updChat();};
+    ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}onWs(m);};
+    ws.onclose=()=>{CH.ok=false;updChat();if(A.token)setTimeout(wsConnect,Math.min(30000,1000*Math.pow(2,CH.tries++)));};
+    ws.onerror=()=>{};
+  }catch(e){}
+}
+function onWs(m){
+  if(m.t==='hist'){CH.msgs[m.ch]=(m.msgs||[]).slice(-100);CH.shard=m.shard||0;if(G.tab==='chat'){renderChatList();updChat();}}
+  else if(m.t==='msg'){
+    const l=CH.msgs[m.ch]||(CH.msgs[m.ch]=[]);l.push(m.m);if(l.length>100)l.shift();
+    if(G.tab==='chat'&&m.ch===CH.room&&!(m.m.name&&CH.blocked.has(m.m.name.toLowerCase())))appendChat(m.m);
+  }else if(m.t==='dm'){
+    const other=(A.name&&m.from.toLowerCase()===A.name.toLowerCase())?m.to:m.from;
+    const x={name:m.from,text:m.text,dm:true,to:m.to,other};
+    (CH.msgs[CH.room]||(CH.msgs[CH.room]=[])).push(x);
+    if(G.tab==='chat'&&!CH.blocked.has(m.from.toLowerCase()))appendChat(x);
+    else if(m.from!==A.name)say(`Private message from ${m.from}.`);
+  }else if(m.t==='online'){CH.online=m.n;updChat();}
+  else if(m.t==='err')say(m.text);
+}
+function msgNode(m){
+  const d=document.createElement('div');
+  d.className='cm'+(m.dm?' dm':'')+(m.sys?' sys':'');
+  if(m.sys){d.textContent=m.text;return d;}
+  const n=document.createElement('button');
+  n.className='cn';n.dataset.act='whisper';n.dataset.n=m.dm?m.other:m.name;
+  n.textContent=(m.badge?'★ ':'')+m.name+(m.dm?` (private to ${m.to})`:'');
+  const t=document.createElement('span');t.textContent=' '+m.text;
+  d.appendChild(n);d.appendChild(t);return d;
+}
+function appendChat(m){
+  const l=$('#chatlist');if(!l)return;
+  const stick=l.scrollTop+l.clientHeight>=l.scrollHeight-40;
+  l.appendChild(msgNode(m));
+  while(l.children.length>100)l.removeChild(l.firstChild);
+  if(stick)l.scrollTop=l.scrollHeight;
+}
+function renderChatList(){
+  const l=$('#chatlist');if(!l)return;
+  l.textContent='';
+  (CH.msgs[CH.room]||[]).forEach(m=>{if(!(m.name&&CH.blocked.has(m.name.toLowerCase())))l.appendChild(msgNode(m));});
+  l.scrollTop=l.scrollHeight;
+}
+function updChat(){
+  const s=$('#chatstat');if(!s)return;
+  s.textContent=CH.ok?`${ROOM_NAMES[CH.room]} room ${CH.shard||''}. ${CH.online} players online.`:'Connecting to chat...';
+}
+function chatMount(){renderChatList();updChat();if(CFG.API&&A.token&&!CH.ok)wsConnect();}
+function chatHTML(){
+  if(!CFG.API)return '<h2>Chat</h2><p class="hint">Player chat switches on once the game server is connected. Setup steps are in server/README.md.</p>';
+  if(!A.token)return `<h2>Chat</h2><p class="hint">Pick a name other miners will see. It also creates the account that holds anything you buy.</p>
+    <label class="field">Display name<input id="chatname" maxlength="16" autocomplete="nickname" placeholder="3 to 16 letters or numbers"></label>
+    <button class="big" style="width:100%" data-act="chatname">Join chat</button>`;
+  const chips=Object.keys(ROOM_NAMES).map(id=>`<button class="chip" data-act="chatroom" data-ch="${id}" aria-pressed="${CH.room===id}">${ROOM_NAMES[id]}</button>`).join('');
+  return `<div class="chips">${chips}</div><p class="hint" id="chatstat"></p><div id="chatlist" class="chatlist" aria-live="polite"></div>
+    <div class="chatbar"><input id="chatinput" maxlength="200" placeholder="Message, or /w name to whisper" autocomplete="off" enterkeyhint="send"><button class="big" data-act="chatsend">Send</button></div>
+    <p class="hint">Tap a name to whisper. Type /block name to mute someone or /report name to flag them. Links are removed from chat.</p>
+    <h2 class="sec2">Your account</h2><p class="hint">You are ${esc(A.name||'')}. Your account key moves your purchases to another device. Keep it private.</p>
+    <button class="btn2" data-act="copykey">Copy account key</button>
+    <label class="field">Restore with a key<input id="restorekey" autocomplete="off" placeholder="Paste an account key"></label>
+    <button class="btn2" data-act="restorekey">Restore account</button>`;
+}
+async function chatRegister(){
+  const name=((($('#chatname')||{}).value)||'').trim();
+  if(!/^[A-Za-z0-9_]{3,16}$/.test(name)){say('Use 3 to 16 letters, numbers or underscores for your name.');return;}
+  try{const j=await api('/api/register',{name});A.token=j.token;A.name=j.name;saveAcc();say(`Welcome, ${A.name}.`);wsConnect();refreshMe();render();}
+  catch(e){say(e.message);}
+}
+function chatJoin(ch){if(!ROOM_NAMES[ch])return;CH.room=ch;wsSend({t:'join',ch});render();}
+function chatSend(){
+  const inp=$('#chatinput');if(!inp)return;
+  const text=(inp.value||'').trim();if(!text)return;
+  if(!CH.ok){say('Chat is reconnecting. Try again in a moment.');return;}
+  let m;
+  if((m=text.match(/^\/w\s+(\S+)\s+(.+)$/)))wsSend({t:'dm',to:m[1],text:m[2]});
+  else if(text.startsWith('/w'))say('Use /w name message to whisper.');
+  else if(text.startsWith('/block ')){CH.blocked.add(text.slice(7).trim().toLowerCase());renderChatList();say('Blocked. You will not see their messages.');}
+  else if(text.startsWith('/report ')){wsSend({t:'report',name:text.slice(8).trim()});say('Report sent. Thank you.');}
+  else wsSend({t:'say',ch:CH.room,text});
+  inp.value='';
+}
+async function copyKey(){
+  try{await navigator.clipboard.writeText(A.token||'');say('Account key copied. Keep it private.');}
+  catch(e){say('Could not copy automatically.');}
+}
+async function restoreKey(){
+  const k=((($('#restorekey')||{}).value)||'').trim();if(!k)return;
+  try{const j=await api('/api/me',null,k);A.token=k;A.name=j.name;saveAcc();if(CH.ws)CH.ws.close();say(`Restored the account for ${j.name}.`);await refreshMe();render();}
+  catch(e){say('That account key did not work.');}
+}
+function bootNet(){
+  loadAcc();
+  if(!CFG.API)return;
+  fetchAds();setInterval(fetchAds,300000);setInterval(flushAdEvents,60000);
+  window.addEventListener('pagehide',flushAdEvents);
+  if(A.token){refreshMe();wsConnect();}
+}
+setInterval(()=>{if(G.tab==='mine')showSponsor();},12000);
+
+/* ---------- start ---------- */
+let last=Date.now();
+setInterval(()=>{const n=Date.now(),dt=Math.min((n-last)/1000,5);last=n;tick(dt);refresh();},250);
+setInterval(save,8000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+window.addEventListener('pagehide',save);
+bootNet();
+if(!loadSaved())say('Start in Nasarawa. Tap to dig, sell for naira, then buy licences to open more states.');
+render();
+</script>
+</body>
+</html>
